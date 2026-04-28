@@ -9,7 +9,7 @@ class Student(models.Model):
     age = models.IntegerField()
     domocile = models.CharField(max_length=100)
     city = models.CharField(max_length=100)
-    district = models.CharField(max_length=100)
+    # district = models.CharField(max_length=100)
 
     def __str__(self):
       # this makes student name visible in the admin panel

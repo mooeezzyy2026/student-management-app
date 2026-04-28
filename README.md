@@ -1,45 +1,30 @@
-# Student Management System 🎓
+# Student Management System (KPK)
 
-A full-stack application built with **React**, **Django REST Framework**, and **MySQL**. This app allows you to add, view, and delete student records in real-time.
+A professional web application to manage student records, specifically designed for users in Khyber Pakhtunkhwa.
 
-## 🏗 Project Structure
+## 🚀 Features
 
-- **Backend:** Django (Python) with MySQL database.
-- **Frontend:** React (JavaScript) located in the `/frontend` folder.
+- **Two-Column Form:** Clean UI layout for easy data entry.
+- **KPK Domicile Selection:** Dynamic dropdown containing all districts of KPK.
+- **Automatic Age Calculation:** Calculates student age instantly from the Date of Birth.
+- **Full CRUD:** Add, View, and Delete student records.
+- **Tech Stack:** React.js (Frontend) & Django REST Framework (Backend).
 
----
+## 🛠️ Installation
 
-## 🚀 How to Run Locally
+### Backend (Django)
 
-### 1. Prerequisite
+1. Navigate to the api folder.
+2. Install requirements: `pip install django djangorestframework django-cors-headers`
+3. Run migrations: `python manage.py migrate`
+4. Start server: `python manage.py runserver`
 
-- Python 3.x installed
-- Node.js installed
-- MySQL Server running with a database named `student_db`
+### Frontend (React)
 
-### 2. Setup the Backend
+1. Navigate to the frontend folder.
+2. Install dependencies: `npm install`
+3. Start the app: `npm start`
 
-From the root directory (`my_django_app`):
+## 📸 Preview
 
-```bash
-# Activate virtual environment (if used)
-source env/bin/activate
-
-# Install Django & dependencies
-pip install django djangorestframework django-cors-headers mysqlclient
-
-# Run migrations
-python3 manage.py migrate
-
-# Start Django server
-python3 manage.py runserver
-
-
-cd frontend
-
-# Install React dependencies
-npm install
-
-# Start React app
-npm start
-```
+_Includes Name, Father's Name, DOB, and Domicile tracking._

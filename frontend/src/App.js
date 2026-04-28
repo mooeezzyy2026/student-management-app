@@ -28,8 +28,11 @@ function App() {
   dob:'',
   domocile:"",
   city: '', 
-  district: '' 
+  // district: '' 
 });
+
+const [editingId, setEditingId] = useState(null);
+
   const API_URL = "http://127.0.0.1:8000/students";
 
   const fetchStudents = async () => {
@@ -45,13 +48,12 @@ function App() {
 
   const saveStudent = async (e) => {
     e.preventDefault();
-
+    
+    // 1. Calculate age from the Date of Birth picker
     if (!form.dob) {
-      alert("Please select Date of Birth");
+      alert("Please select a Date of Birth");
       return;
     }
-
-    // Calculate age from the Date Picker
     const birthDate = new Date(form.dob);
     const today = new Date();
     let calculatedAge = today.getFullYear() - birthDate.getFullYear();
@@ -60,27 +62,53 @@ function App() {
         calculatedAge--;
     }
 
+    // 2. Prepare the data for the backend
     const dataToSend = { 
       name: form.name,
       father_name: form.father_name,
       age: calculatedAge, 
       domocile: form.domocile,
-      city: form.city,
-      district: form.district
+      city: form.city
     };
 
     try {
-      await axios.post(API_URL, dataToSend);
-      setForm({ name: '', father_name: '', dob: '', domocile: '', city: '', district: '' });
-      fetchStudents(); 
+      if (editingId) {
+        // UPDATE: This uses the ID we saved when clicking 'Edit'
+        await axios.put(`${API_URL}/${editingId}/`, dataToSend);
+        setEditingId(null); // Switch back to 'Add' mode
+      } else {
+        // CREATE: This adds a new student
+        await axios.post(`${API_URL}/`, dataToSend);
+      }
+      
+      // 3. Refresh list and clear the form
+      fetchStudents();
+      setForm({ name: '', father_name: '', dob: '', domocile: '', city: '' });
     } catch (error) {
       console.error("Error saving student:", error);
+      alert("Something went wrong while saving.");
     }
   };
+
+
+  
   
   const deleteStudent = async (id) => {
-    await axios.delete(`${API_URL}/${id}`);
+    // Add the / at the end of the URL here!
+    await axios.delete(`${API_URL}/${id}/`); 
     fetchStudents();
+  };
+
+  const editStudent = (student) => {
+    setEditingId(student.id);
+    setForm({
+      name: student.name,
+      father_name: student.father_name,
+      dob: student.dob || '', 
+      domocile: student.domocile,
+      city: student.city
+    });
+    window.scrollTo(0, 0); 
   };
 
   return (
@@ -107,11 +135,26 @@ function App() {
           </select>
         </div>
 
-        <input placeholder="City" value={form.city} onChange={e => setForm({...form, city: e.target.value})} style={inputStyle} />
-        <input placeholder="District" value={form.district} onChange={e => setForm({...form, district: e.target.value})} style={inputStyle} />
+        {/* <input placeholder="City" value={form.city} onChange={e => setForm({...form, city: e.target.value})} style={inputStyle} /> */}
+        <input  placeholder="City" value={form.city} onChange={e => setForm({...form, city: e.target.value})} style={{ ...inputStyle, gridColumn: 'span 2' }} // This fills the empty gap
+/>
+        {/* <input placeholder="District" value={form.district} onChange={e => setForm({...form, district: e.target.value})} style={inputStyle} /> */}
         
-        <button type="submit" style={{ gridColumn: 'span 2', padding: '12px', background: '#4A90E2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>
-          Save Student
+        <button 
+          type="submit" 
+          style={{ 
+            gridColumn: 'span 2', 
+            padding: '12px', 
+            background: editingId ? '#27ae60' : '#4A90E2', // Green if editing, Blue if saving
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '4px', 
+            cursor: 'pointer', 
+            fontSize: '16px', 
+            fontWeight: 'bold' 
+          }}
+        >
+          {editingId ? "Update Student" : "Save Student"}
         </button>
       </form>
   
@@ -125,25 +168,48 @@ function App() {
             <th style={thTdStyle}>Age</th>
             <th style={thTdStyle}>domocile</th>
             <th style={thTdStyle}>City</th>
-            <th style={thTdStyle}>District</th>
+            {/* <th style={thTdStyle}>District</th> */}
             <th style={thTdStyle}>Action</th>
           </tr>
         </thead>
+        
         <tbody>
-          {students.map((s) => (
-            <tr key={s.id} style={{ borderBottom: '1px solid #ddd' }}>
-              <td style={thTdStyle}>{s.name}</td>
-              <td style={thTdStyle}>{s.father_name}</td>
-              <td style={thTdStyle}>{s.age}</td>
-              <td style={thTdStyle}>{s.domocile}</td>
-              <td style={thTdStyle}>{s.city}</td>
-              <td style={thTdStyle}>{s.district}</td>
-              <td style={thTdStyle}>
-                <button onClick={() => deleteStudent(s.id)} style={{ background: '#e74c3c', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>Delete</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
+  {students.map((s) => (
+    <tr key={s.id} style={{ borderBottom: '1px solid #ddd' }}>
+      {/* 1. Name Column */}
+      <td style={thTdStyle}>{s.name}</td>
+      
+      {/* 2. Father Name Column */}
+      <td style={thTdStyle}>{s.father_name}</td>
+      
+      {/* 3. Age Column */}
+      <td style={thTdStyle}>{s.age}</td>
+      
+      {/* 4. Domicile Column */}
+      <td style={thTdStyle}>{s.domocile}</td>
+      
+      {/* 5. City Column */}
+      <td style={thTdStyle}>{s.city}</td>
+      
+      {/* 6. Action Column (Buttons live here) */}
+      <td style={thTdStyle}>
+        <button 
+          onClick={() => editStudent(s)} 
+          style={{ background: '#f39c12', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}
+        >
+          Edit
+        </button>
+        <button 
+          onClick={() => deleteStudent(s.id)} 
+          style={{ background: '#e74c3c', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
+        >
+          Delete
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+        
       </table>
     </div>
   );
