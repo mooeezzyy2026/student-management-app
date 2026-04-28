@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 import pymysql
 
-# This tells Django to use PyMySQL for MySQL connections
 pymysql.install_as_MySQLdb()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -72,4 +71,4 @@ USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True  # Allows React to talk to Django
+CORS_ALLOW_ALL_ORIGINS = True

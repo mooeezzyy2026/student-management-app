@@ -4,8 +4,6 @@ from rest_framework import status
 from .models import Student
 from .serializers import StudentSerializer
 
-# Only allow these types of requests
-
 
 @api_view(['GET', 'POST'])
 def student_list(request):
@@ -20,7 +18,7 @@ def student_list(request):
 
     # Create a new student
     if request.method == 'POST':
-      # Take data from React
+
         serializer = StudentSerializer(data=request.data)
         if serializer.is_valid():
           # Save it to MySQL
@@ -29,20 +27,16 @@ def student_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['DELETE', 'PUT'])  # Add 'PUT' here
+@api_view(['DELETE', 'PUT'])
 def student_detail(request, pk):
     try:
         # Find the specific student
         student = Student.objects.get(pk=pk)
     except Student.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-
-    # DELETE logic
     if request.method == 'DELETE':
         student.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-    # UPDATE logic (The missing piece!)
     elif request.method == 'PUT':
         serializer = StudentSerializer(student, data=request.data)
         if serializer.is_valid():
