@@ -2,27 +2,37 @@ import os
 from pathlib import Path
 import pymysql
 
+# This is required for Django to work with MySQL on some systems
 pymysql.install_as_MySQLdb()
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-your-secret-key-here'
+
+# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
 ALLOWED_HOSTS = []
 
+# Application definition
 INSTALLED_APPS = [
+
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',      # For the API
-    'corsheaders',         # For React connection
-    'api',                 # Your app
+    'rest_framework',
+    'corsheaders',
+    'api',
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # MUST be at the top
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -52,23 +62,47 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'student_project.wsgi.application'
 
+# Database Configuration (MySQL)
+# Update 'NAME', 'USER', and 'PASSWORD' to match your local database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'student_db',
-        'USER': 'root',
-        'PASSWORD': 'moeez1996',
+        'NAME': 'student_db',        # The database must exist in MySQL
+        'USER': 'root',              # Your MySQL username
+        'PASSWORD': 'moeez1996',  # Change this!
         'HOST': '127.0.0.1',
         'PORT': '3306',
     }
 }
 
-AUTH_PASSWORD_VALIDATORS = []
+
+# Password validation
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+# Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
+
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
+
+# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# CORS configuration: Allows React (port 3000) to access this API
 CORS_ALLOW_ALL_ORIGINS = True
