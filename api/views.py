@@ -1,108 +1,71 @@
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Student, Teacher, Subject
-from .serializers import StudentSerializer, TeacherSerializer, SubjectSerializer
+from django.http import JsonResponse
 from django.contrib.auth import authenticate
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
+from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
+import json
+from .models import Teacher, Student, Subject
 
 
-@api_view(['POST'])
+@csrf_exempt
 def login_view(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
-    user = authenticate(username=username, password=password)
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data.get('username', '').strip()
+            password = data.get('password', '').strip()
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                role = "teacher" if hasattr(
+                    user, 'teacher_profile') or user.is_superuser else "student"
+                return JsonResponse({
+                    "role": role,
+                    "user": {"username": user.username, "id": user.pk}
+                })
+            return JsonResponse({"error": "Invalid credentials"}, status=401)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Method not allowed"}, status=405)
 
-    if user is not None:
-        return Response({"message": "Login successful", "user": username}, status=status.HTTP_200_OK)
-    else:
-        return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-# --- TEACHER VIEWS ---
+
+@csrf_exempt
+def register_view(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user = User.objects.create_user(
+                username=data.get('username'),
+                password=data.get('password')
+            )
+            return JsonResponse({"role": "student", "user": user.username}, status=201)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Method not allowed"}, status=405)
 
 
-@api_view(['GET', 'POST'])
 def teacher_list(request):
-    """
-    List all teachers or create a new teacher.
-    """
-    if request.method == 'GET':
-        teachers = Teacher.objects.all()
-        serializer = TeacherSerializer(teachers, many=True)
-        return Response(serializer.data)
-
-    elif request.method == 'POST':
-        serializer = TeacherSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        # --- SUBJECT VIEWS ---
+    teachers = list(Teacher.objects.all().values(
+        'id', 'name', 'specialization', 'email'))
+    return JsonResponse(teachers, safe=False)
 
 
-@api_view(['GET', 'POST'])
-def subject_list(request):
-    """
-    List all subjects or create a new subject.
-    """
-    if request.method == 'GET':
-        subjects = Subject.objects.all()
-        serializer = SubjectSerializer(subjects, many=True)
-        return Response(serializer.data)
-
-    elif request.method == 'POST':
-        serializer = SubjectSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        # --- STUDENT VIEWS ---
-
-
-@api_view(['GET', 'POST'])
 def student_list(request):
-    """
-    List all students or create a new student.
-    """
-    if request.method == 'GET':
-        students = Student.objects.all()
-        serializer = StudentSerializer(students, many=True)
-        return Response(serializer.data)
-
-    elif request.method == 'POST':
-        serializer = StudentSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    students = list(Student.objects.all().values(
+        'id', 'name', 'age', 'city', 'father_name'))
+    return JsonResponse(students, safe=False)
 
 
-@api_view(['GET', 'PUT', 'DELETE'])
+def subject_list(request):
+    subjects = list(Subject.objects.all().values('id', 'name', 'teacher_id'))
+    return JsonResponse(subjects, safe=False)
+
+
 def student_detail(request, pk):
-    """
-    Retrieve, update or delete a student instance.
-    """
-    try:
-        student = Student.objects.get(pk=pk)
-    except Student.DoesNotExist:
-        return Response({'error': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
-
-    if request.method == 'GET':
-        serializer = StudentSerializer(student)
-        return Response(serializer.data)
-
-    elif request.method == 'PUT':
-        serializer = StudentSerializer(student, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == 'DELETE':
-
-        student.delete()
-
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    student = get_object_or_404(Student, pk=pk)
+    return JsonResponse({
+        "id": student.pk,
+        "name": student.name,
+        "age": student.age,
+        "city": student.city,
+        "father_name": student.father_name
+    })
